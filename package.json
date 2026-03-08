@@ -1,0 +1,36 @@
+{
+  "name": "prooffund-crowdfunding-dapp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "compile:contracts": "hardhat compile",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:polygon": "hardhat run scripts/deploy.js --network polygon",
+    "backend": "cd backend && source venv/bin/activate && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+  },
+  "dependencies": {
+    "@gemwallet/api": "^3.8.0",
+    "axios": "^1.7.7",
+    "ethers": "^6.13.0",
+    "five-bells-condition": "^5.0.1",
+    "form-data": "^4.0.5",
+    "next": "^14.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.34.5",
+    "xrpl": "^3.0.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14"
+  }
+}
