@@ -552,14 +552,29 @@ export default function XrplPage() {
       <section className="hero">
         <h1 className="hero-title">ProofFund</h1>
         <a href="#" onClick={(e) => { e.preventDefault(); setView("transparency"); }} className="hero-blockchain-badge">
-          🔗 All transactions verified on XRPL blockchain
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          All transactions verified on XRPL
         </a>
         <p className="hero-subtitle">
           Decentralized crowdfunding on XRPL. Create campaigns, donate with XRP or RLUSD,
-          AI fraud detection, milestone-based release. Connect with GemWallet.
+          AI fraud detection, milestone-based release.
         </p>
+        <div className="trust-badges" style={{ marginTop: "1.5rem" }}>
+          <div className="trust-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>AI fraud checks</span>
+          </div>
+          <div className="trust-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>Milestone releases</span>
+          </div>
+          <div className="trust-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Escrow protection</span>
+          </div>
+        </div>
         {!walletAddress && (
-          <p className="hero-hint">Connect your GemWallet above to donate or vote on campaigns.</p>
+          <p className="hero-hint" style={{ marginTop: "1.25rem" }}>Connect GemWallet above to donate or vote on campaigns.</p>
         )}
       </section>
 
@@ -604,8 +619,8 @@ export default function XrplPage() {
 
         {view === "list" && !selectedCampaign && (
           <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-              <h2 className="section-title">XRPL campaigns</h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+              <h2 className="section-title">Browse campaigns</h2>
               <button
                 type="button"
                 className="btn-primary btn-primary-filled"
@@ -647,9 +662,12 @@ export default function XrplPage() {
                         style={c.imageCid ? { backgroundImage: `url(https://gateway.pinata.cloud/ipfs/${c.imageCid})`, backgroundSize: "cover" } : {}}
                       >
                         {!c.imageCid && <span>💧</span>}
+                        {c.category && c.category !== "other" && (
+                          <span className="category-badge">{c.category}</span>
+                        )}
                         <span className="campaign-card-xrpl-badge">On XRPL</span>
                         {c.verificationStatus === "approved" && (
-                          <span className="campaign-card-xrpl-badge" style={{ background: "var(--success)", right: "0.5rem", top: "0.5rem" }}>✓ Verified</span>
+                          <span className="campaign-card-xrpl-badge" style={{ background: "#059669", right: "0.5rem", top: "0.5rem" }}>✓ Verified</span>
                         )}
                       </div>
                       <div className="campaign-card-body">
@@ -679,21 +697,56 @@ export default function XrplPage() {
         {view === "detail" && selectedCampaign && (
           <div className="campaign-detail" style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr 340px", gap: "2rem", alignItems: "start" }}>
             <div className="campaign-detail-main card">
-              <button
-                type="button"
-                className="back-link"
-                onClick={() => { setSelectedCampaign(null); setView("list"); }}
-              >
-                ← Back to campaigns
-              </button>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+                <button
+                  type="button"
+                  className="back-link"
+                  style={{ marginBottom: 0 }}
+                  onClick={() => { setSelectedCampaign(null); setView("list"); }}
+                >
+                  ← Back to campaigns
+                </button>
+                {isCreator && (selectedCampaign.totalRaisedXrp || 0) === 0 && (
+                  <button
+                    type="button"
+                    className="btn-outline-sm"
+                    style={{ color: "#dc2626", borderColor: "#fca5a5" }}
+                    onClick={async () => {
+                      if (!confirm("Delete this campaign? This cannot be undone.")) return;
+                      setLoading(true);
+                      setError("");
+                      try {
+                        const r = await fetch(`/api/xrpl/campaigns/${selectedCampaign.id}`, {
+                          method: "DELETE",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ creatorAddress: walletAddress }),
+                        });
+                        const d = await r.json().catch(() => ({}));
+                        if (!r.ok) throw new Error(d.error || "Delete failed");
+                        setSuccessMsg("Campaign deleted.");
+                        setSelectedCampaign(null);
+                        setView("list");
+                        fetchCampaigns();
+                      } catch (err) {
+                        setError(err?.message || "Delete failed");
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    disabled={loading}
+                  >
+                    Delete campaign
+                  </button>
+                )}
+              </div>
               <div
                 className="campaign-detail-hero"
                 style={{
-                  height: 200,
+                  height: 220,
                   background: selectedCampaign.imageCid
                     ? `url(https://gateway.pinata.cloud/ipfs/${selectedCampaign.imageCid}) center/cover`
-                    : "linear-gradient(135deg, #e6f7ef 0%, #bae6fd 100%)",
-                  borderRadius: 12,
+                    : "linear-gradient(135deg, var(--brand-50) 0%, var(--brand-light) 100%)",
+                  borderRadius: "var(--radius-lg)",
                   marginBottom: "1.5rem",
                   display: "flex",
                   alignItems: "center",
