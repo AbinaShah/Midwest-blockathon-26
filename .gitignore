@@ -16,6 +16,8 @@ cache/
 .env.local
 .env.*.local
 backend/.env
+backend/venv/
+backend/.venv/
 
 # Data (local store)
 data/

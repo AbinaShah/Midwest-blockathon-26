@@ -1,6 +1,22 @@
 # ProofFund
 
-**Full-stack decentralized crowdfunding on XRPL** — transparent, milestone-based fund distribution with AI fraud detection. **XRPL-only** (no Ethereum/Polygon). Uses XRP Ledger for all transactions, Pinata for IPFS storage, and Gemini for fraud analysis.
+**Full-stack decentralized crowdfunding (XRPL-first)** — transparent, milestone-based fund distribution with AI fraud detection. Uses XRP Ledger for payments/escrows, Pinata for IPFS storage, and Gemini for fraud analysis.
+
+## Code tour (start here)
+
+If you only have 10 minutes, these files show the core logic (and make for good interview discussion):
+
+- **XRPL payments + verification**: `lib/xrpl.js`, `lib/xrpl-verify.js`
+- **XRPL-native campaign storage + API**: `lib/xrpl-store.js`, `pages/api/xrpl/**`
+- **Pinata IPFS pinning**: `lib/pinata-metadata.js`
+- **AI backend (FastAPI)**: `backend/app/main.py`, `backend/app/fraud_detection.py`, `backend/app/cost_validation.py`
+- **Frontend UX**: `pages/index.js`, `pages/xrpl.js`
+- **Optional EVM contract mode** (Hackathon version): `contracts/CrowdfundingPlatform.sol`, `scripts/deploy.js`
+
+## Two modes (so the README doesn’t feel contradictory)
+
+- **XRPL-native mode (recommended demo)**: Visit `/xrpl`. No MetaMask; campaigns are stored in `data/xrpl-campaigns.json` and metadata/proofs are pinned to IPFS via Pinata.
+- **EVM contract mode (optional)**: The repo also contains a Hardhat + Solidity contract used for milestone governance + on-chain metadata CID storage in the hackathon build.
 
 ---
 
@@ -22,7 +38,7 @@
 
 ## Core concept
 
-- **XRPL-only** — all transactions on XRP Ledger (no MetaMask)
+- **XRPL-first** — XRPL-native mode works without MetaMask
 - **Milestone-based release** — donor-weighted voting; funds released only after proof + approval
 - **AI fraud detection** — Gemini analyzes documents (manipulation, relevance, AI-generated)
 - **Cost validation** — Gemini + location/category to flag unrealistic amounts
@@ -36,7 +52,7 @@
 | Layer | Stack |
 |-------|--------|
 | **Frontend** | Next.js, TailwindCSS, xrpl.js |
-| **Blockchain** | XRPL Testnet/Devnet only |
+| **Blockchain** | XRPL Testnet/Devnet (primary) + optional EVM (Hardhat/Solidity) |
 | **Storage** | Pinata (IPFS) for metadata, images, proofs |
 | **AI** | Gemini API for fraud detection + cost validation |
 | **Backend** | Python FastAPI (verify-documents, validate-cost) |
@@ -82,6 +98,48 @@
 ---
 
 ## Setup
+
+## Quickstart (minimal, interview-friendly)
+
+This is the smallest path to run something locally without deploying contracts.
+
+### 1) Install dependencies
+
+```bash
+npm install
+```
+
+### 2) Configure env
+
+```bash
+cp .env.local.example .env.local
+```
+
+Fill in at least:
+
+- `NEXT_PUBLIC_PINATA_JWT`
+- `NEXT_PUBLIC_XRPL_TREASURY_ADDRESS`
+- `NEXT_PUBLIC_XRPL_NETWORK` (leave as `testnet` unless you know you need `devnet`)
+- `NEXT_PUBLIC_AI_API_URL` (keep default if you’ll run the backend)
+
+### 3) Run the backend (AI fraud + cost validation)
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### 4) Run the frontend
+
+```bash
+cd ..
+npm run dev
+```
+
+Open `http://localhost:3000` and use the **XRPL-native** experience at `/xrpl`.
 
 ### 1. Install and compile
 
